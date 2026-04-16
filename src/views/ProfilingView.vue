@@ -44,8 +44,17 @@ const perceptions = ref({
   right: 'Medio ~2kHz'
 })
 
-const observations = ref('')
+const observations = ref(store.latestProfile?.observations || '')
 const saveDialogVisible = ref(false)
+
+// Sync from store if exists
+if (store.latestProfile) {
+  factors.value = { ...store.latestProfile.factors }
+  symptoms.value = { ...store.latestProfile.symptoms }
+  if (store.latestProfile.perceptions) {
+    perceptions.value = { ...store.latestProfile.perceptions }
+  }
+}
 
 const freqOptions = [
   { label: 'Grave', value: 'Grave ~500Hz' },
@@ -91,19 +100,25 @@ const saveProfile = () => {
 }
 
 const confirmSave = () => {
-  // Mock save to store
   const profile = {
     date: new Date().toISOString(),
     reliability_index: reliabilityIndex.value,
     factors: { ...factors.value },
     symptoms: { ...symptoms.value },
     observations: observations.value,
-    frequency_perception: perceptions.value[activeEar.value]
+    perceptions: { ...perceptions.value }
   }
   
-  // Logic to simulate backend persistence
-  alert('Perfil Clínico archivado correctamente.')
+  store.latestProfile = profile
+  store.patientHistory.unshift({
+    id: 'prof_' + Date.now(),
+    date: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
+    type: 'Perfilado Tinnitus',
+    data: profile
+  })
+
   saveDialogVisible.value = false
+  alert('Perfil Clínico archivado correctamente en el Gemelo Digital.')
 }
 </script>
 

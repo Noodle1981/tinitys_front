@@ -16,7 +16,9 @@ export const useTinnitusStore = defineStore('tinnitus', {
     },
     hearingAids: [],
     maintenanceHistory: [],
-    patientHistory: []
+    patientHistory: [],
+    latestMapping: mockData.latest_mapping || { left: { status: 'healthy', layers: [] }, right: { status: 'healthy', layers: [] } },
+    latestProfile: mockData.latest_profile || null
   }),
   getters: {
     userName: (state) => state.auth.user.name,
@@ -31,6 +33,11 @@ export const useTinnitusStore = defineStore('tinnitus', {
       this.hearingAids = patient.hearing_aids_data?.current_devices || []
       this.maintenanceHistory = patient.hearing_aids_data?.maintenance_history || []
       this.patientHistory = patient.hearing_aids_data?.audiometry_history || []
+      
+      // Auto-cargar la última audiometría si existe en el historial
+      if (this.patientHistory.length > 0 && !Object.keys(this.audiometryData.right).length) {
+        this.audiometryData = JSON.parse(JSON.stringify(this.patientHistory[0].data))
+      }
     },
     unselectPatient() {
       this.selectedPatient = null

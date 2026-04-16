@@ -15,7 +15,9 @@ import {
   ClipboardList,
   Waves,
   FileText,
-  User
+  User,
+  Layers,
+  Activity
 } from 'lucide-vue-next'
 import { useTinnitusStore } from './stores/tinnitusStore'
 
@@ -37,7 +39,8 @@ const patientNavigation = computed(() => {
     { name: 'Audiometría', icon: Ear, path: `/patients/${id}/audiometry` },
     { name: 'Perfil Tinitus', icon: ClipboardList, path: `/patients/${id}/profiling` },
     { name: 'Mapeo Sonoro', icon: Waves, path: `/patients/${id}/mapping` },
-    { name: 'Correlación', icon: FileText, path: `/patients/${id}/report` },
+    { name: 'Superposición', icon: Layers, path: `/patients/${id}/spectral` },
+    { name: 'Correlación', icon: Activity, path: `/patients/${id}/correlation` },
   ]
 })
 

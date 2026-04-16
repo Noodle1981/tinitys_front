@@ -35,6 +35,16 @@ const router = createRouter({
       component: () => import('../views/ReportView.vue')
     },
     {
+      path: '/patients/:id/spectral',
+      name: 'spectral',
+      component: () => import('../views/SpectralView.vue')
+    },
+    {
+      path: '/patients/:id/correlation',
+      name: 'correlation',
+      component: () => import('../views/CorrelationView.vue')
+    },
+    {
       path: '/settings',
       name: 'settings',
       component: () => import('../views/SettingsView.vue')

@@ -38,8 +38,12 @@ const defaultLayers = () => [
   { id: 'tono_modulado', name: 'Tono Modulado', desc: 'Pulsación de frecuencia', type: 'sweep', freq: 62, vol: 0, speed: 30, color: '#F59E0B' }
 ]
 
-const leftLayers = ref(defaultLayers())
-const rightLayers = ref(defaultLayers())
+const leftLayers = ref(store.latestMapping.left?.layers.length ? JSON.parse(JSON.stringify(store.latestMapping.left.layers)) : defaultLayers())
+const rightLayers = ref(store.latestMapping.right?.layers.length ? JSON.parse(JSON.stringify(store.latestMapping.right.layers)) : defaultLayers())
+
+// Sync ear status
+if (store.latestMapping.left?.status) earStatus.left = store.latestMapping.left.status
+if (store.latestMapping.right?.status) earStatus.right = store.latestMapping.right.status
 
 // Animation Frames
 const waveAnimFrames = {}
@@ -178,9 +182,21 @@ const saveMapping = () => {
 }
 
 const confirmSave = () => {
-  // Logic to persist data would go here
+  // Persistence to Store
+  store.latestMapping = {
+    left: { status: earStatus.left, layers: [...leftLayers.value] },
+    right: { status: earStatus.right, layers: [...rightLayers.value] }
+  }
+
+  store.patientHistory.unshift({
+    id: 'map_' + Date.now(),
+    date: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
+    type: 'Mapeo Tinnitus',
+    data: JSON.parse(JSON.stringify(store.latestMapping))
+  })
+
   showSaveDialog.value = false
-  alert('Mapeo de Tinnitus guardado en el Gemelo Digital.')
+  alert('Configuración de Mapeo guardada correctamente en el Gemelo Digital.')
 }
 
 // Ensure audio context starts on first interaction
