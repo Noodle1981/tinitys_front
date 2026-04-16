@@ -258,6 +258,23 @@
       }
     ]
   },
+  "latest_mapping": {
+    "id": 88,
+    "date": "2026-04-16T13:10:00Z",
+    "right": {
+      "status": "symptomatic",
+      "layers": [
+        { "id": "tono_pulsatil", "vol": 45, "freq": 78, "speed": 60 },
+        { "id": "ruido_banda", "vol": 20, "freq": 40, "speed": null },
+        { "id": "tono_puro", "vol": 0, "freq": 55, "speed": null },
+        { "id": "tono_modulado", "vol": 0, "freq": 62, "speed": 30 }
+      ]
+    },
+    "left": {
+      "status": "healthy",
+      "layers": []
+    }
+  },
   "api_endpoints_preview": {
     "login": "POST /api/v1/auth/login",
     "get_profile": "GET /api/v1/patients/{id}/latest-profile",

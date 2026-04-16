@@ -16,7 +16,8 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  ClipboardList
+  ClipboardList,
+  Save
 } from 'lucide-vue-next'
 
 const store = useTinnitusStore()
@@ -108,20 +109,36 @@ const confirmSave = () => {
 
 <template>
   <div class="h-[calc(100vh-160px)] min-h-[600px] flex flex-col gap-6 overflow-hidden">
-    <!-- Header -->
-    <div class="flex items-center justify-between shrink-0">
-      <div>
-        <h1 class="text-xl font-black text-primary-900 flex items-center gap-3">
-          <Activity class="text-accent-blue" :size="24" />
-          Perfil Diagnóstico de Tinnitus
-        </h1>
-        <p class="text-xs text-primary-500 mt-1">
-          Evaluación de confiabilidad para: <span class="font-bold text-primary-700">{{ store.selectedPatient?.name }}</span>
-        </p>
+    <!-- Header & Clinical Console -->
+    <div class="flex items-center justify-between shrink-0 px-2 py-4 bg-primary-900 rounded-3xl shadow-xl border border-white/5">
+      <div class="flex items-center gap-6">
+        <!-- Title & Icon -->
+        <div class="flex items-center gap-3 pl-4">
+          <div class="size-10 bg-accent-blue/10 rounded-xl flex items-center justify-center text-accent-blue border border-accent-blue/20">
+            <Activity :size="20" />
+          </div>
+          <div>
+            <h1 class="text-xs font-black text-white uppercase tracking-widest">Perfilado</h1>
+            <p class="text-[9px] text-white/40 uppercase font-bold">Diagnóstico de Confiabilidad</p>
+          </div>
+        </div>
+
+        <div class="hidden md:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black text-white/40 uppercase tracking-widest">
+          <Clock :size="12" />
+          {{ new Date().toLocaleDateString() }}
+        </div>
       </div>
-      <div class="flex items-center gap-2 px-3 py-1.5 bg-primary-50 border border-primary-100 rounded-lg text-[10px] font-bold text-primary-500 uppercase tracking-widest">
-        <Clock :size="12" />
-        {{ new Date().toLocaleDateString() }}
+      
+      <!-- Action Diskette -->
+      <div class="pr-4">
+        <Button 
+          @click="saveProfile" 
+          v-tooltip.bottom="'Archivar Perfil Clínico'"
+          class="p-button p-component bg-emerald-500 border-none py-3 px-5 shadow-lg shadow-emerald-500/10 text-white rounded-xl transition-all duration-300 flex items-center gap-2 hover:bg-emerald-600" 
+        >
+          <Save :size="18" />
+          <span class="text-[10px] font-black uppercase tracking-widest hidden md:block">Archivar Perfil</span>
+        </Button>
       </div>
     </div>
 
@@ -169,10 +186,9 @@ const confirmSave = () => {
               @click="activeEar = 'left'"
               :class="[
                 'flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all border-2', 
-                activeEar === 'left' 
-                  ? 'bg-audio-left border-audio-left text-white shadow-lg' 
-                  : 'bg-transparent border-transparent text-white/40 hover:text-white/60'
+                activeEar === 'left' ? 'text-white border-white/20' : 'bg-transparent border-transparent text-white/40 hover:text-white/60'
               ]"
+              :style="activeEar === 'left' ? { backgroundColor: '#3B82F6' } : {}"
             >
               Oído Izquierdo
             </button>
@@ -180,10 +196,9 @@ const confirmSave = () => {
               @click="activeEar = 'right'"
               :class="[
                 'flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all border-2', 
-                activeEar === 'right' 
-                  ? 'bg-audio-right border-audio-right text-white shadow-lg' 
-                  : 'bg-transparent border-transparent text-white/40 hover:text-white/60'
+                activeEar === 'right' ? 'text-white border-white/20' : 'bg-transparent border-transparent text-white/40 hover:text-white/60'
               ]"
+              :style="activeEar === 'right' ? { backgroundColor: '#EF4444' } : {}"
             >
               Oído Derecho
             </button>
@@ -199,9 +214,10 @@ const confirmSave = () => {
                 :class="[
                   'py-3 px-2 text-[9px] font-black uppercase tracking-tight rounded-xl transition-all text-center border-2 flex items-center justify-center gap-2',
                   perceptions[activeEar] === opt.value 
-                    ? (activeEar === 'left' ? 'bg-audio-left border-audio-left text-white shadow-lg shadow-blue-500/20' : 'bg-audio-right border-audio-right text-white shadow-lg shadow-red-500/20')
+                    ? 'text-white border-white/20 shadow-lg'
                     : 'bg-white/5 border-white/5 text-white/30 hover:bg-white/10'
                 ]"
+                :style="perceptions[activeEar] === opt.value ? { backgroundColor: activeEar === 'left' ? '#3B82F6' : '#EF4444' } : {}"
               >
                 <div 
                   v-if="perceptions[activeEar] === opt.value"
@@ -314,20 +330,19 @@ const confirmSave = () => {
           </div>
         </div>
 
-        <!-- Float Actions -->
+        <!-- Float Actions REMOVED and MOVED to Header -->
         <div class="flex justify-end gap-3 pt-2 shrink-0">
-          <Button label="Restablecer" severity="secondary" text class="text-[10px] uppercase font-bold tracking-widest" />
-          <Button @click="saveProfile" icon="pi pi-check" label="Archivar Perfil Clínico" severity="danger" class="bg-accent-red border-none px-12 py-4 shadow-xl shadow-red-500/20 font-black uppercase text-xs tracking-widest" />
+          <Button label="Restablecer Datos" severity="secondary" text class="text-[10px] uppercase font-black tracking-widest opacity-40 hover:opacity-100 transition-opacity" />
         </div>
       </div>
     </div>
   </div>
 
   <!-- Confirm Save Modal -->
-  <Dialog v-model:visible="saveDialogVisible" modal header="Guardar Perfil de Tinnitus" :style="{ width: '400px' }">
+  <Dialog v-model:visible="saveDialogVisible" modal header="Confirmar Archivo" :style="{ width: '450px' }">
     <div class="space-y-6 pt-4">
       <div class="p-6 bg-primary-50 rounded-2xl border border-primary-100 flex items-center gap-4">
-        <div class="size-16 rounded-full flex items-center justify-center font-black text-xl" :style="{ backgroundColor: getStatusColor(reliabilityIndex) + '20', color: getStatusColor(reliabilityIndex) }">
+        <div class="size-16 rounded-2xl flex items-center justify-center font-black text-xl shadow-lg" :style="{ backgroundColor: getStatusColor(reliabilityIndex), color: 'white' }">
           {{ reliabilityIndex }}
         </div>
         <div>
@@ -336,13 +351,13 @@ const confirmSave = () => {
         </div>
       </div>
 
-      <p class="text-sm text-primary-500 leading-relaxed text-center px-4">
-        ¿Deseas guardar definitivamente el perfil clínico de hoy en la base de datos del paciente?
+      <p class="text-xs text-primary-500 leading-relaxed text-center px-4">
+        ¿Deseas archivar este perfil clínico en el registro histórico del paciente? Estos datos alimentarán la evolución del Gemelo Digital.
       </p>
 
       <div class="flex gap-3">
-        <Button label="Cancelar" severity="secondary" text @click="saveDialogVisible = false" class="text-xs uppercase font-bold flex-1" />
-        <Button @click="confirmSave" label="Sí, Guardar Perfil" severity="danger" class="bg-accent-red border-none text-xs uppercase font-bold flex-1 py-4 shadow-lg shadow-red-500/10" />
+        <Button label="Revisar" severity="secondary" text @click="saveDialogVisible = false" class="text-xs uppercase font-bold flex-1" />
+        <Button @click="confirmSave" label="Archivar Perfil" class="bg-emerald-500 border-none text-xs uppercase font-black flex-1 py-4 shadow-xl shadow-emerald-500/20 text-white" />
       </div>
     </div>
   </Dialog>
