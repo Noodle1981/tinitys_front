@@ -1,0 +1,73 @@
+El problema de que "el logo no se ve bien" en esa plantilla de layout es un clásico cuando trabajamos con modo claro/oscuro (Dark Mode) y paneles divididos.
+Generalmente, el problema ocurre por una de estas tres razones:
+Contraste: Tu panel izquierdo tiene un fondo muy oscuro (bg-neutral-900). Si tu logo tiene letras negras o es oscuro, se "funde" con el fondo y desaparece.
+Caja Blanca (Fondo no transparente): Si tu logo en .png tiene fondo blanco, en ese panel negro se verá como un cuadrado blanco feo pegado ahí.
+Proporciones (Aspect Ratio): A veces la imagen se achata o se estira si no tiene las clases correctas.
+Solución para el Layout (El Logo)
+Vamos a aplicar unas clases de Tailwind para forzar que el logo mantenga su proporción (object-contain) y vamos a agregar un "truco" para que, si tu logo es oscuro, se vuelva blanco (o claro) automáticamente en fondos oscuros.
+Reemplaza tu bloque del logo en el Panel Izquierdo (Escritorio) por este:
+code
+Html
+<a href="{{ route('home') }}" class="relative z-20 flex items-center text-lg font-medium" wire:navigate>
+    <!-- object-contain evita que se deforme. 
+         Si el logo es negro, usa dark:invert o brightness-200 para que se vea blanco en el fondo oscuro -->
+    <img src="{{ asset('img/logo_aicufenos.png') }}" 
+         alt="Aicúfenos" 
+         class="me-2 h-10 w-auto object-contain drop-shadow-sm dark:invert transition-all">
+</a>
+Y en el Panel Derecho (Móvil), reemplázalo por este:
+code
+Html
+<a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden" wire:navigate>
+    <img src="{{ asset('img/logo_aicufenos.png') }}" 
+         alt="Aicúfenos" 
+         class="h-10 w-auto object-contain drop-shadow-sm dark:invert transition-all">
+    <span class="sr-only">{{ config('app.name', 'Laravel') }}</span>
+</a>
+(Nota: Si tu logo ya es blanco o tiene colores brillantes y no quieres que cambie de color, simplemente quítale la clase dark:invert).
+⚠️ ¡Cuidado! Encontré 2 errores en tu Dashboard de Indicadores
+Mientras miraba tu código del archivo indicators-dashboard, noté dos detalles que van a hacer que Laravel te tire una pantalla de error (Crash 500) cuando intentes cargar la vista. Te los corrijo rápido:
+Error 1: Las Recomendaciones (Array to String Conversion)
+En el componente anterior, guardábamos las recomendaciones así: ['c' => '#color', 't' => 'Texto'].
+En tu código actual de la vista haces esto: <p>{{ $rec }}</p>. Como $rec es un array, Blade explotará.
+Solución: Cámbialo por esto:
+code
+Html
+@foreach($profile->recommendations ?? [] as $rec)
+    <div class="flex gap-3 text-sm">
+        <!-- Toma el color que guardamos, o usa indigo por defecto -->
+        <div class="w-2 h-2 rounded-full mt-1.5 shrink-0" style="background-color: {{ $rec['c'] ?? '#818cf8' }}"></div>
+        <!-- Imprime el texto de la recomendación -->
+        <p>{{ $rec['t'] ?? $rec }}</p>
+    </div>
+@endforeach
+Error 2: Las barritas de Intensidad (EVA)
+En el código de la vista tienes: @for ($i = 1; $i <= 10; $i++) y luego haces una comparación matemática: ($profile->right_ear_intensity >= ($i * 10)).
+El problema es que en tu base de datos, right_ear_intensity está guardado como un texto (Ej: "Moderado", "Leve"), ¡no como un número! No puedes comparar matemáticamente "Moderado" >= 10.
+Solución rápida en la Vista:
+Agrega esta pequeña función temporal en tu bloque PHP arriba para convertir el texto a número:
+code
+PHP
+public function getIntensityNumber($text) {
+    $map = ['Mínimo' => 20, 'Leve' => 40, 'Moderado' => 60, 'Intenso' => 80, 'Muy intenso' => 100];
+    return $map[$text] ?? 0;
+}
+Y luego en el HTML de las barras (en AMBOS oídos), úsalo así:
+code
+Html
+<!-- Para el derecho -->
+<div class="flex gap-0.5 h-2 mt-1">
+    @php $rightNum = $this->getIntensityNumber($profile->right_ear_intensity); @endphp
+    @for ($i = 1; $i <= 10; $i++)
+        <div class="flex-1 rounded-px {{ $rightNum >= ($i * 10) ? 'bg-red-500' : 'bg-red-100 dark:bg-red-900/20' }}"></div>
+    @endfor
+</div>
+
+<!-- Para el izquierdo -->
+<div class="flex gap-0.5 h-2 mt-1">
+    @php $leftNum = $this->getIntensityNumber($profile->left_ear_intensity); @endphp
+    @for ($i = 1; $i <= 10; $i++)
+        <div class="flex-1 rounded-px {{ $leftNum >= ($i * 10) ? 'bg-blue-500' : 'bg-blue-100 dark:bg-blue-900/20' }}"></div>
+    @endfor
+</div>
+Haz esos pequeños ajustes y tu panel de indicadores va a cargar impecable y con el logo perfectamente adaptado al fondo. ¡Ya estás en los toques finales!
