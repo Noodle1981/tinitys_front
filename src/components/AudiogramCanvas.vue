@@ -169,31 +169,35 @@ const drawGrid = (c) => {
 }
 
 const drawEarData = (c, data, color, type) => {
-  const freqs = Object.keys(data).map(Number).sort((a,b) => a-b)
+  const freqs = Object.keys(data)
+    .map(Number)
+    .filter(f => data[f] !== null && data[f] !== undefined)
+    .sort((a,b) => a-b)
+    
   if (freqs.length === 0) return
 
   // Lines
   c.beginPath()
   c.strokeStyle = color
   c.lineWidth = 2
-  let first = true
+  let lastX = null, lastY = null, lastHz = null
+
   for (let i = 0; i < freqs.length; i++) {
     const hz = freqs[i]
     if (!FREQS.includes(hz)) continue
     const x = getX(hz), y = getY(data[hz])
     
-    if (first) {
+    if (lastX === null) {
       c.moveTo(x, y)
-      first = false
     } else {
-      // Gap Detection (don't connect if a primary frequency is skipped)
-      const prevHz = freqs[i-1]
+      // Gap Detection (Standard clinical rule: don't connect if a primary frequency is skipped)
       let hasGap = false
       for (let f of FREQ_SHOW) {
-        if (f > prevHz && f < hz) { hasGap = true; break; }
+        if (f > lastHz && f < hz) { hasGap = true; break; }
       }
       if (hasGap) c.moveTo(x, y); else c.lineTo(x, y)
     }
+    lastX = x; lastY = y; lastHz = hz
   }
   c.stroke()
 

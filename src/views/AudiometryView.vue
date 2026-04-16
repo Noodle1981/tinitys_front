@@ -40,6 +40,17 @@ watch(selectedHistory, (newVal) => {
 
 const aidDialogVisible = ref(false)
 const editingAid = ref(null)
+const saveDialogVisible = ref(false)
+const selectedType = ref('Evaluación de Seguimiento')
+
+const audiometryTypes = ref([
+  'Evaluación Inicial',
+  'Evaluación de Seguimiento',
+  'Control Anual',
+  'Alta Intensidad / Profunda',
+  'Screening / Tamizaje',
+  'Otras'
+])
 
 const openEditAid = (aid) => {
   editingAid.value = { ...aid }
@@ -112,9 +123,23 @@ const clearAll = () => {
 }
 
 const save = () => {
-  // Logic to persist session
+  saveDialogVisible.value = true
+}
+
+const confirmSave = () => {
+  // En una app real, esto iría a la API. Aquí simulamos el guardado en el historial local.
+  const newRecord = {
+    id: 'aud_hist_' + Date.now(),
+    date: new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }),
+    type: selectedType.value,
+    data: JSON.parse(JSON.stringify(audiometry.value))
+  }
+  
+  store.patientHistory.unshift(newRecord)
   store.updateAudiometry(audiometry.value)
-  alert('Sesión de Audiometría guardada correctamente.')
+  
+  saveDialogVisible.value = false
+  alert(`Audiometría "${selectedType.value}" guardada con éxito en el historial.`)
 }
 </script>
 
@@ -393,6 +418,36 @@ const save = () => {
 
       <div class="pt-2 sticky bottom-0 bg-white">
         <Button @click="saveAid" label="Guardar Ficha Técnica" fluid severity="secondary" class="font-bold uppercase text-[10px] tracking-widest py-2.5 shadow-lg shadow-primary-200" />
+      </div>
+    </div>
+  </Dialog>
+
+  <!-- Save Audiometry Session Dialog -->
+  <Dialog v-model:visible="saveDialogVisible" modal header="Guardar Sesión Clínica" :style="{ width: '350px' }" class="p-fluid">
+    <div class="space-y-4 pt-4">
+      <div class="space-y-2">
+        <label class="text-[10px] uppercase font-bold text-primary-400 tracking-widest">Tipo de Audiometría</label>
+        <Select 
+          v-model="selectedType" 
+          :options="audiometryTypes" 
+          placeholder="Seleccionar tipo..." 
+          class="w-full text-sm" 
+        />
+      </div>
+
+      <div class="p-3 bg-primary-50 rounded-xl border border-primary-100 flex items-start gap-3">
+        <TrendingUp :size="18" class="text-accent-blue mt-0.5" />
+        <div>
+          <p class="text-[10px] font-bold text-primary-900 leading-tight">Configuración del Registro</p>
+          <p class="text-[8px] text-primary-500 uppercase leading-relaxed mt-1">
+            Se guardarán {{ Object.keys(audiometry.right).length + Object.keys(audiometry.left).length }} umbrales para el paciente actual.
+          </p>
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-2">
+        <Button label="Cancelar" severity="secondary" text @click="saveDialogVisible = false" class="text-[10px] uppercase font-bold tracking-widest" />
+        <Button @click="confirmSave" label="Confirmar Guardado" severity="danger" class="bg-accent-red border-none font-bold uppercase text-[10px] tracking-widest py-3 shadow-lg shadow-red-500/10 flex-1" />
       </div>
     </div>
   </Dialog>
