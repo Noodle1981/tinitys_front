@@ -219,6 +219,7 @@
       "health_state": 2,
       "fatigue_level": 1
     },
+    "observations": "Paciente refiere aumento de intensidad tras jornada laboral ruidosa. No ha utilizado protección auditiva.",
     "symptoms": {
       "alcohol_intake": true,
       "has_puna": false,
